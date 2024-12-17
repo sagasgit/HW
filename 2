@@ -1,0 +1,76 @@
+def parse_schematic(file_path):
+    
+    transistors = {}
+    resistors = {}
+    capacitors = {}
+    
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    for line in lines:
+        line = line.strip()  
+        
+        if line.startswith('xm'):  # Transistors
+            parts = line.split()
+            xm_num = parts[0][2:]  # number of transistor after 'xm'
+            transistors[xm_num] = {
+                "net1": parts[1],
+                "net2": parts[2],
+                "vp": parts[3],
+                "l": parts[4].split('=')[1],  
+                "nf": parts[5].split('=')[1],  
+                "m": parts[6].split('=')[1],   
+                "nfin": parts[7].split('=')[1] 
+            }
+        
+        elif line.startswith('r'):  # resistors
+            parts = line.split()
+            r_num = parts[0][1:]  # number  after 'r'
+            resistors[r_num] = {
+                "net1": parts[1],
+                "net2": parts[2],
+                "r_value": parts[3].split('=')[1] 
+            }
+        
+        elif line.startswith('c'):  # Con
+            parts = line.split()
+            c_num = parts[0][1:]  # number  after 'c'
+            capacitors[c_num] = {
+                "net1": parts[1],
+                "net2": parts[2],
+                "c_value": parts[3].split('=')[1]  
+            }
+
+    return {"transistors": transistors, "resistors": resistors, "capacitors": capacitors}
+
+
+def generate_schematic(data, output_file):
+    
+    with open(output_file, 'w') as file:
+    
+        for xm_num, xm_data in data["transistors"].items():
+            line = (f"xm{xm_num} {xm_data['net1']} {xm_data['net2']} {xm_data['vp']} "
+                    f"l={xm_data['l']} nf={xm_data['nf']} m={xm_data['m']} nfin={xm_data['nfin']}\n")
+            file.write(line)
+        
+        
+        for r_num, r_data in data["resistors"].items():
+            line = f"r{r_num} {r_data['net1']} {r_data['net2']} r={r_data['r_value']}\n"
+            file.write(line)
+        
+        
+        for c_num, c_data in data["capacitors"].items():
+            line = f"c{c_num} {c_data['net1']} {c_data['net2']} c={c_data['c_value']}\n"
+            file.write(line)
+
+
+
+if __name__ == "__main__":
+    input_file = "input_schematic.txt"
+    output_file = "output_schematic.txt"
+
+    
+    data = parse_schematic(input_file)
+
+    
+    generate_schematic(data, output_file)
